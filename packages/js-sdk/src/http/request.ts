@@ -4,11 +4,10 @@ import { Base64 } from 'js-base64';
 import { InvalidCredentialsError } from '../errors/invalidCredentials';
 import { getAppSecret} from '../kinvey';
 import { logger } from '../log';
-import { DataStoreCache, QueryCache, SyncCache } from '../datastore/cache';
 import { HttpHeaders, KinveyHttpHeaders, KinveyHttpAuth } from './headers';
 import { HttpResponse } from './response';
 import { send } from './http';
-import { getSession, setSession, removeSession } from './session';
+import { getSession, setSession } from './session';
 import { formatKinveyAuthUrl, formatKinveyBaasUrl, KinveyBaasNamespace } from './utils';
 
 const REQUEST_QUEUE = new PQueue();
