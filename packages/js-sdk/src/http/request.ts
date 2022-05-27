@@ -169,10 +169,13 @@ export class KinveyHttpRequest extends HttpRequest {
                     refresh_token: micSession.refresh_token
                   }
                 });
-                const refreshResponse = await refreshRequest.execute();
 
-                // Create a new MIC session
+                const refreshResponse = await refreshRequest.execute(false);
                 const newMICSession = Object.assign({}, micSession, refreshResponse.data);
+                activeSession._socialIdentity[micIdentityKey] = Object.assign({}, activeSession._socialIdentity[micIdentityKey], newMICSession);
+
+                // Persist the new access and refresh tokens
+                await setSession(activeSession);
 
                 // Login with the new MIC session
                 const loginRequest = new KinveyHttpRequest({
@@ -185,7 +188,8 @@ export class KinveyHttpRequest extends HttpRequest {
                     }
                   }
                 });
-                const loginResponse = await loginRequest.execute();
+
+                const loginResponse = await loginRequest.execute(false);
                 const newSession = loginResponse.data;
                 newSession._socialIdentity[micIdentityKey] = Object.assign({}, newSession._socialIdentity[micIdentityKey], newMICSession);
 
@@ -205,28 +209,6 @@ export class KinveyHttpRequest extends HttpRequest {
                 logger.error(error.message);
               }
             }
-          }
-
-          try {
-            // TODO: Unregister from live service
-
-            // Logout
-            const request = new KinveyHttpRequest({
-              method: HttpRequestMethod.POST,
-              auth: KinveyHttpAuth.Session,
-              url: formatKinveyBaasUrl(KinveyBaasNamespace.User, '/_logout')
-            });
-            await request.execute(false);
-
-            // Remove the session
-            await removeSession();
-
-            // Clear cache's
-            await QueryCache.clear();
-            await SyncCache.clear();
-            await DataStoreCache.clear();
-          } catch (error) {
-            logger.error(error.message);
           }
         }
 
